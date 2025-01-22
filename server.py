@@ -5,7 +5,7 @@ from datetime import datetime
 import sqlite3
 import pandas as pd
 import numpy as np
-from flask import Flask, request
+from flask import Flask, request, send_from_directory
 
 
 app = Flask(__name__)
@@ -84,5 +84,10 @@ LIMIT 1
     return json.dumps(power_usage, default=str)
 
 
+@app.route("/")
+def index():
+    return send_from_directory("doc", "index.html")
+
+
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0")
+    app.run(host="0.0.0.0")
