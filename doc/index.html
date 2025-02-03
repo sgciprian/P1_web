@@ -38,12 +38,28 @@
         .bar {
             position: absolute;
             bottom: 0;
+            transition: transform 0.2s ease;
+        }
+        .bar:hover {
+            transform: scaleY(1.1);
+            background: linear-gradient(180deg, #89f7fe, #66a6ff);
         }
         .bar.faded {
             background-color: #a3c9ff;
         }
         .bar.current {
             background-color: #007aff;
+        }
+		.tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            opacity: 0;
         }
     </style>
 </head>
@@ -53,6 +69,7 @@
         <div class="power" id="power">Fetching power...</div>
     </div>
     <div class="graph" id="graph"></div>
+	<div class="tooltip" id="tooltip"></div>
 	
     <script>
         async function fetchPower() {
@@ -151,11 +168,13 @@
 		
 			const midnight = new Date();
 			midnight.setHours(0, 0, 0, 0);
+			
+			const tooltip = document.getElementById('tooltip');
 		
 			data.forEach((entry, index) => {
 				const bar = document.createElement('div');
 				bar.classList.add('bar');
-		
+
 				let scaledHeight = (entry.power / maxPower) * maxHeight;
 				scaledHeight = Math.max(scaledHeight, 2);
 				bar.style.height = `${scaledHeight}px`;
@@ -168,10 +187,28 @@
 					bar.classList.add('faded');
 				}
 				
+				bar.addEventListener('mouseenter', (e) => {
+                    const startTime = formatTooltipTime(this.entry.time);
+                    const endTime = formatTooltipTime(new Date(this.entry.time.getTime() + interval));
+                    tooltip.innerHTML = `<strong>${startTime} - ${endTime}</strong><br>${this.entry.power} W`;
+                    tooltip.style.opacity = 1;
+                    tooltip.style.left = `${e.pageX + 10}px`;
+                    tooltip.style.top = `${e.pageY - 30}px`;
+                });
+    
+                bar.addEventListener('mouseleave', () => {
+                    tooltip.style.opacity = 0;
+                });
+
 				graph.appendChild(bar);
 			});
 		}
 		
+		function formatTooltipTime(date) {
+            const pad = (num) => num.toString().padStart(2, '0');
+            return `${pad(date.getHours())}:${pad(date.getMinutes())}`;
+        }
+
         fetchPower();
         setInterval(fetchPower, 1000);
         fetchGraphData();
